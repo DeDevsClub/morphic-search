@@ -2,7 +2,7 @@
 
 An AI-powered search engine with a generative UI.
 
-![capture](/public/screenshot-2025-01-31.png)
+![capture](/public/screenshot-2025-05-04.png)
 
 ## 🗂️ Overview
 
@@ -12,9 +12,9 @@ An AI-powered search engine with a generative UI.
 - 🌐 [Deploy](#-deploy)
 - 🔎 [Search Engine](#-search-engine)
 - ✅ [Verified models](#-verified-models)
-- ⚡ [AI SDK Implementation](#-ai-sdk-implementation)
-- 📦 [Open Source vs Cloud Offering](#-open-source-vs-cloud-offering)
 - 👥 [Contributing](#-contributing)
+
+📝 Explore AI-generated documentation on [DeepWiki](https://deepwiki.com/miurla/morphic)
 
 ## 🛠 Features
 
@@ -25,6 +25,12 @@ An AI-powered search engine with a generative UI.
 - Multiple search providers support (Tavily, SearXNG, Exa)
 - Model selection from UI (switch between available AI models)
   - Reasoning models with visible thought process
+
+### Authentication
+
+- User authentication powered by [Supabase Auth](https://supabase.com/docs/guides/auth)
+- Supports Email/Password sign-up and sign-in
+- Supports Social Login with Google
 
 ### Chat & History
 
@@ -73,6 +79,10 @@ Models are configured in `public/config/models.json`. Each model requires its co
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
 - [Vercel AI SDK](https://sdk.vercel.ai/docs) - Text streaming / Generative UI
 
+### Authentication & Authorization (Updated Category)
+
+- [Supabase](https://supabase.com/) - User authentication and backend services
+
 ### AI & Search
 
 - [OpenAI](https://openai.com/) - Default AI provider (Optional: Google AI, Anthropic, Groq, Ollama, Azure OpenAI, DeepSeek, Fireworks)
@@ -119,7 +129,7 @@ cp .env.local.example .env.local
 Fill in the required environment variables in `.env.local`:
 
 ```bash
-# Required
+# Required for Core Functionality
 OPENAI_API_KEY=     # Get from https://platform.openai.com/api-keys
 TAVILY_API_KEY=     # Get from https://app.tavily.com/home
 ```
@@ -228,28 +238,6 @@ This will allow you to use Morphic as your default search engine in the browser.
   - grok-2
   - grok-2-vision
   - grok-3-beta
-
-## ⚡ AI SDK Implementation
-
-### Current Version: AI SDK UI
-
-This version of Morphic uses the AI SDK UI implementation, which is recommended for production use. It provides better streaming performance and more reliable client-side UI updates.
-
-### Previous Version: AI SDK RSC (v0.2.34 and earlier)
-
-The React Server Components (RSC) implementation of AI SDK was used in versions up to [v0.2.34](https://github.com/miurla/morphic/releases/tag/v0.2.34) but is now considered experimental and not recommended for production. If you need to reference the RSC implementation, please check the v0.2.34 release tag.
-
-> Note: v0.2.34 was the final version using RSC implementation before migrating to AI SDK UI.
-
-For more information about choosing between AI SDK UI and RSC, see the [official documentation](https://sdk.vercel.ai/docs/getting-started/navigating-the-library#when-to-use-ai-sdk-rsc).
-
-## 📦 Open Source vs Cloud Offering
-
-Morphic is open source software available under the Apache-2.0 license.
-
-To maintain sustainable development and provide cloud-ready features, we offer a hosted version of Morphic alongside our open-source offering. The cloud solution makes Morphic accessible to non-technical users and provides additional features while keeping the core functionality open and available for developers.
-
-For our cloud service, visit [morphic.sh](https://morphic.sh).
 
 ## 👥 Contributing
 
