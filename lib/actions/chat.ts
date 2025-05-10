@@ -118,7 +118,10 @@ export async function getChatsPage(
   }
 }
 
-export async function getChat(id: string, userId: string = 'anonymous') {
+export async function getChat(
+  id: string,
+  userId: string = 'anonymous'
+): Promise<Chat | null> {
   const redis = await getRedis()
   const chat = await redis.hgetall<Chat>(`chat:${id}`)
 

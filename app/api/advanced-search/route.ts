@@ -1,14 +1,14 @@
-import { NextResponse } from 'next/server'
+import {
+  SearXNGResponse,
+  SearXNGResult,
+  SearXNGSearchResults,
+  SearchResultItem
+} from '@/lib/types'
 import http from 'http'
 import https from 'https'
 import { JSDOM, VirtualConsole } from 'jsdom'
-import {
-  SearXNGSearchResults,
-  SearXNGResponse,
-  SearXNGResult,
-  SearchResultItem
-} from '@/lib/types'
-import { Agent } from 'http'
+import { NextResponse } from 'next/server'
+// import { Agent } from 'http'
 import { Redis } from '@upstash/redis'
 import { createClient } from 'redis'
 
