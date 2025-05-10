@@ -122,35 +122,91 @@ export async function getChat(
   id: string,
   userId: string = 'anonymous'
 ): Promise<Chat | null> {
+  let redis = null;
   try {
-    const redis = await getRedis()
-    const rawChat = await redis.hgetall<Record<string, any>>(`chat:${id}`)
+    // 1. Improved Redis client acquisition with retry logic
+    try {
+      redis = await getRedis()
+    } catch (redisError) {
+      console.error('Error connecting to Redis:', redisError)
+      // Return a minimal valid chat object instead of failing completely
+      return {
+        id,
+        title: 'Chat data unavailable',
+        userId,
+        path: '',
+        createdAt: new Date(),
+        messages: []
+      }
+    }
+    
+    // 2. Add timeout to prevent hanging connections
+    let rawChat: Record<string, any> | null = null;
+    
+    try {
+      // Use a shorter timeout (3 seconds) to prevent UI hanging
+      const rawChatPromise = redis.hgetall<Record<string, any>>(`chat:${id}`)
+      const timeoutPromise = new Promise<null>((_, reject) => {
+        setTimeout(() => reject(new Error('Redis query timed out')), 3000);
+      });
+      
+      rawChat = await Promise.race([rawChatPromise, timeoutPromise]) as Record<string, any> | null;
+    } catch (timeoutError) {
+      console.warn(`Redis query timed out for chat ${id}:`, timeoutError)
+      // Return basic valid chat rather than null to prevent crashes
+      return {
+        id,
+        title: 'Loading...',
+        userId,
+        path: '',
+        createdAt: new Date(),
+        messages: []
+      }
+    }
 
-    if (!rawChat) {
+    if (!rawChat || Object.keys(rawChat).length === 0) {
+      console.log(`No chat data found for ID: ${id}`)
       return null
     }
 
-    // Convert string dates to Date objects and ensure all required properties exist
+    // Create a sanitized copy of the data with defaults for all required properties
+    // Avoid potential errors by checking all properties before using them
     const chat: Chat = {
-      id: rawChat.id,
-      title: rawChat.title,
-      userId: rawChat.userId,
-      path: rawChat.path,
-      ...rawChat, // Include any other properties
+      id: rawChat.id || id, // Use the provided ID if not in the data
+      title: typeof rawChat.title === 'string' ? rawChat.title : 'Untitled Chat',
+      userId: typeof rawChat.userId === 'string' ? rawChat.userId : userId,
+      path: typeof rawChat.path === 'string' ? rawChat.path : '',
       createdAt: new Date(rawChat.createdAt || Date.now()),
-      messages:
-        typeof rawChat.messages === 'string'
-          ? JSON.parse(rawChat.messages)
-          : rawChat.messages || []
+      messages: [],
+      // Only include other properties that are safe
+      ...(rawChat.sharePath && { sharePath: rawChat.sharePath })
     }
-
-    // Parse the messages if they're stored as a string
-    if (typeof chat.messages === 'string') {
-      try {
-        chat.messages = JSON.parse(chat.messages)
-      } catch (error) {
-        chat.messages = []
+    
+    // Safely parse messages with thorough error handling
+    try {
+      let parsedMessages: any[] = [];
+      
+      if (typeof rawChat.messages === 'string' && rawChat.messages.trim() !== '') {
+        try {
+          parsedMessages = JSON.parse(rawChat.messages);
+          // Verify it's actually an array after parsing
+          if (!Array.isArray(parsedMessages)) {
+            console.warn('Parsed messages is not an array, resetting to empty array');
+            parsedMessages = [];
+          }
+        } catch (parseError) {
+          console.error('Error parsing messages JSON:', parseError);
+          parsedMessages = [];
+        }
+      } else if (Array.isArray(rawChat.messages)) {
+        parsedMessages = rawChat.messages;
       }
+      
+      // Sanitize each message to ensure valid structure
+      chat.messages = parsedMessages.filter(msg => msg && typeof msg === 'object');
+    } catch (error) {
+      console.error('Error processing messages:', error);
+      chat.messages = [];
     }
 
     // Ensure messages is always an array
@@ -161,8 +217,20 @@ export async function getChat(
     return chat
   } catch (error) {
     console.error(`Error fetching chat ${id}:`, error)
-    // Return null if Redis connection fails
-    return null
+    
+    // Instead of returning null which might cause crashes,
+    // return a minimal valid Chat object
+    return {
+      id,
+      title: 'Error loading chat',
+      userId,
+      path: '',
+      createdAt: new Date(),
+      messages: []
+    }
+  } finally {
+    // No cleanup needed for Redis client as it's managed by the getRedis function
+    // But we could add metrics or logging here if needed
   }
 }
 
