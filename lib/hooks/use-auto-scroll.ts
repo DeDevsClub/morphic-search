@@ -10,7 +10,7 @@ interface UseAutoScrollOptions {
 }
 
 interface UseAutoScrollReturn {
-  anchorRef: React.RefObject<HTMLDivElement>
+  anchorRef: React.RefObject<HTMLDivElement | null>
   isAutoScroll: boolean
 }
 

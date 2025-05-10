@@ -13,7 +13,7 @@ interface ChatMessagesProps {
   chatId?: string
   addToolResult?: (params: { toolCallId: string; result: any }) => void
   /** Ref for anchoring auto-scroll position */
-  anchorRef: React.RefObject<HTMLDivElement>
+  anchorRef: React.RefObject<HTMLDivElement | null>
   /** Ref for the scroll container */
   scrollContainerRef: React.RefObject<HTMLDivElement>
   onUpdateMessage?: (messageId: string, newContent: string) => Promise<void>
@@ -135,7 +135,7 @@ export function ChatMessages({
           ) : (
             <Spinner />
           ))}
-        <div ref={anchorRef} />
+        <div ref={anchorRef as React.RefObject<HTMLDivElement>} />
       </div>
     </div>
   )
