@@ -122,28 +122,48 @@ export async function getChat(
   id: string,
   userId: string = 'anonymous'
 ): Promise<Chat | null> {
-  const redis = await getRedis()
-  const chat = await redis.hgetall<Chat>(`chat:${id}`)
+  try {
+    const redis = await getRedis()
+    const rawChat = await redis.hgetall<Record<string, any>>(`chat:${id}`)
 
-  if (!chat) {
-    return null
-  }
+    if (!rawChat) {
+      return null
+    }
 
-  // Parse the messages if they're stored as a string
-  if (typeof chat.messages === 'string') {
-    try {
-      chat.messages = JSON.parse(chat.messages)
-    } catch (error) {
+    // Convert string dates to Date objects and ensure all required properties exist
+    const chat: Chat = {
+      id: rawChat.id,
+      title: rawChat.title,
+      userId: rawChat.userId,
+      path: rawChat.path,
+      ...rawChat, // Include any other properties
+      createdAt: new Date(rawChat.createdAt || Date.now()),
+      messages:
+        typeof rawChat.messages === 'string'
+          ? JSON.parse(rawChat.messages)
+          : rawChat.messages || []
+    }
+
+    // Parse the messages if they're stored as a string
+    if (typeof chat.messages === 'string') {
+      try {
+        chat.messages = JSON.parse(chat.messages)
+      } catch (error) {
+        chat.messages = []
+      }
+    }
+
+    // Ensure messages is always an array
+    if (!Array.isArray(chat.messages)) {
       chat.messages = []
     }
-  }
 
-  // Ensure messages is always an array
-  if (!Array.isArray(chat.messages)) {
-    chat.messages = []
+    return chat
+  } catch (error) {
+    console.error(`Error fetching chat ${id}:`, error)
+    // Return null if Redis connection fails
+    return null
   }
-
-  return chat
 }
 
 export async function clearChats(
