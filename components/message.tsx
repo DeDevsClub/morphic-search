@@ -27,10 +27,12 @@ export function BotMessage({
 
   if (containsLaTeX) {
     return (
-      <div className={cn(
-        'prose-sm prose-neutral prose-a:text-accent-foreground/50',
-        className
-      )}>
+      <div
+        className={cn(
+          'prose-sm prose-neutral prose-a:text-accent-foreground/50',
+          className
+        )}
+      >
         <MemoizedReactMarkdown
           rehypePlugins={[
             [rehypeExternalLinks, { target: '_blank' }],
@@ -45,28 +47,34 @@ export function BotMessage({
   }
 
   return (
-    <div className={cn(
-      'prose-sm prose-neutral prose-a:text-accent-foreground/50',
-      className
-    )}>
+    <div
+      className={cn(
+        'prose-sm prose-neutral prose-a:text-accent-foreground/50',
+        className
+      )}
+    >
       <MemoizedReactMarkdown
         rehypePlugins={[[rehypeExternalLinks, { target: '_blank' }]]}
         remarkPlugins={[remarkGfm]}
         components={{
-          code({ node, inline, className, children, ...props }) {
-            if (children.length) {
-              if (children[0] == '▍') {
-                return (
-                  <span className="mt-1 cursor-default animate-pulse">▍</span>
-                )
+          code({ node, className, children, ...props }) {
+            if (Array.isArray(children) && children.length > 0) {
+              const firstChild = children[0]
+              if (typeof firstChild === 'string') {
+                if (firstChild === '▍') {
+                  return (
+                    <span className="mt-1 cursor-default animate-pulse">▍</span>
+                  )
+                }
+                // Modify the first child if it's a string and needs replacement
+                children[0] = firstChild.replace('`▍`', '▍')
               }
-
-              children[0] = (children[0] as string).replace('`▍`', '▍')
             }
 
             const match = /language-(\w+)/.exec(className || '')
+            const isInline = !match
 
-            if (inline) {
+            if (isInline) {
               return (
                 <code className={className} {...props}>
                   {children}
