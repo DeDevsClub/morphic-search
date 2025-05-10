@@ -27,66 +27,68 @@ export function BotMessage({
 
   if (containsLaTeX) {
     return (
-      <MemoizedReactMarkdown
-        rehypePlugins={[
-          [rehypeExternalLinks, { target: '_blank' }],
-          [rehypeKatex]
-        ]}
-        remarkPlugins={[remarkGfm, remarkMath]}
-        className={cn(
-          'prose-sm prose-neutral prose-a:text-accent-foreground/50',
-          className
-        )}
-      >
-        {processedData}
-      </MemoizedReactMarkdown>
+      <div className={cn(
+        'prose-sm prose-neutral prose-a:text-accent-foreground/50',
+        className
+      )}>
+        <MemoizedReactMarkdown
+          rehypePlugins={[
+            [rehypeExternalLinks, { target: '_blank' }],
+            [rehypeKatex]
+          ]}
+          remarkPlugins={[remarkGfm, remarkMath]}
+        >
+          {processedData}
+        </MemoizedReactMarkdown>
+      </div>
     )
   }
 
   return (
-    <MemoizedReactMarkdown
-      rehypePlugins={[[rehypeExternalLinks, { target: '_blank' }]]}
-      remarkPlugins={[remarkGfm]}
-      className={cn(
-        'prose-sm prose-neutral prose-a:text-accent-foreground/50',
-        className
-      )}
-      components={{
-        code({ node, inline, className, children, ...props }) {
-          if (children.length) {
-            if (children[0] == '▍') {
+    <div className={cn(
+      'prose-sm prose-neutral prose-a:text-accent-foreground/50',
+      className
+    )}>
+      <MemoizedReactMarkdown
+        rehypePlugins={[[rehypeExternalLinks, { target: '_blank' }]]}
+        remarkPlugins={[remarkGfm]}
+        components={{
+          code({ node, inline, className, children, ...props }) {
+            if (children.length) {
+              if (children[0] == '▍') {
+                return (
+                  <span className="mt-1 cursor-default animate-pulse">▍</span>
+                )
+              }
+
+              children[0] = (children[0] as string).replace('`▍`', '▍')
+            }
+
+            const match = /language-(\w+)/.exec(className || '')
+
+            if (inline) {
               return (
-                <span className="mt-1 cursor-default animate-pulse">▍</span>
+                <code className={className} {...props}>
+                  {children}
+                </code>
               )
             }
 
-            children[0] = (children[0] as string).replace('`▍`', '▍')
-          }
-
-          const match = /language-(\w+)/.exec(className || '')
-
-          if (inline) {
             return (
-              <code className={className} {...props}>
-                {children}
-              </code>
+              <CodeBlock
+                key={Math.random()}
+                language={(match && match[1]) || ''}
+                value={String(children).replace(/\n$/, '')}
+                {...props}
+              />
             )
-          }
-
-          return (
-            <CodeBlock
-              key={Math.random()}
-              language={(match && match[1]) || ''}
-              value={String(children).replace(/\n$/, '')}
-              {...props}
-            />
-          )
-        },
-        a: Citing
-      }}
-    >
-      {message}
-    </MemoizedReactMarkdown>
+          },
+          a: Citing
+        }}
+      >
+        {message}
+      </MemoizedReactMarkdown>
+    </div>
   )
 }
 

@@ -42,7 +42,7 @@ export function Chat({
     addToolResult,
     reload
   } = useChat({
-    initialMessages: savedMessages,
+    initialMessages: savedMessages ?? [],
     id: CHAT_ID,
     body: {
       id
@@ -66,12 +66,12 @@ export function Chat({
     isLoading,
     dependency: messages.length,
     isStreaming: () => status === 'streaming',
-    scrollContainer: scrollContainerRef,
+    scrollContainer: scrollContainerRef as any,
     threshold: 50
   })
 
   useEffect(() => {
-    setMessages(savedMessages)
+    setMessages(savedMessages ?? [])
   }, [id])
 
   const onQuerySelect = (query: string) => {
@@ -153,7 +153,7 @@ export function Chat({
         chatId={id}
         addToolResult={addToolResult}
         anchorRef={anchorRef}
-        scrollContainerRef={scrollContainerRef}
+        scrollContainerRef={scrollContainerRef as any}
         onUpdateMessage={handleUpdateAndReloadMessage}
         reload={handleReloadFrom}
       />
