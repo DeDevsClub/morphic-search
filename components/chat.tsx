@@ -48,10 +48,8 @@ export function Chat({
       id
     },
     onFinish: () => {
-      router.replace(`/search/${id}`)
-      startTransition(() => {
-        router.refresh()
-      })
+      window.history.replaceState({}, '', `/search/${id}`)
+      window.dispatchEvent(new CustomEvent('chat-history-updated'))
     },
     onError: error => {
       toast.error(`Error in chat: ${error.message}`)
@@ -62,12 +60,16 @@ export function Chat({
 
   const isLoading = status === 'submitted' || status === 'streaming'
 
-  const { anchorRef, isAutoScroll } = useAutoScroll({
+  const {
+    anchorRef,
+    isAutoScroll,
+    enable: enableAutoScroll
+  } = useAutoScroll({
     isLoading,
     dependency: messages.length,
-    isStreaming: () => status === 'streaming',
+    isStreaming: status === 'streaming',
     scrollContainer: scrollContainerRef,
-    threshold: 50
+    threshold: 70
   })
 
   useEffect(() => {
